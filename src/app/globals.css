@@ -1,26 +1,78 @@
+
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fffaf5;
+  --foreground: #201b35;
+
+  --primary: #7209b7;
+  --secondary: #f72585;
+  --accent: #4361ee;
+  --highlight: #ffb703;
+  --cyan: #4cc9f0;
+
+  --muted: #716b80;
+  --surface: #ffffff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-highlight: var(--highlight);
+  --color-cyan: var(--cyan);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+::selection {
+  background: #f72585;
+  color: white;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #f72585, #7209b7, #4361ee);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, #f72585, #7209b7, #4361ee);
+}
+
+.gradient-warm {
+  background: linear-gradient(135deg, #ffb703, #fb8500, #f72585);
+}
+
+.gradient-cool {
+  background: linear-gradient(135deg, #4cc9f0, #4361ee, #7209b7);
 }
