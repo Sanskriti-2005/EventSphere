@@ -1,0 +1,179 @@
+// EventSphere database schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Different roles available in EventSphere
+enum UserRole {
+  ATTENDEE
+  ORGANIZER
+  ADMIN
+}
+
+// Stores all registered users
+model User {
+  id              String         @id @default(cuid())
+  clerkId         String         @unique
+  name            String?
+  email           String         @unique
+  imageUrl        String?
+  role            UserRole       @default(ATTENDEE)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  organizedEvents Event[]
+  bookings        Booking[]
+  notifications   Notification[]
+}
+
+// Available event statuses
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+// Categories such as Music, Technology, Sports
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events Event[]
+}
+
+// Stores event information
+model Event {
+  id             String      @id @default(cuid())
+  title          String
+  slug           String      @unique
+  description    String
+  location       String
+  venue          String?
+  startDate      DateTime
+  endDate        DateTime
+  bannerImageUrl String?
+  status         EventStatus @default(DRAFT)
+
+  organizerId String
+  organizer   User   @relation(fields: [organizerId], references: [id])
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  ticketTypes TicketType[]
+  bookings    Booking[]
+
+  @@index([organizerId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+// Different ticket booking statuses
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  FAILED
+}
+
+// Ticket categories and their prices for an event
+model TicketType {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal   @db.Decimal(10, 2)
+  totalSeats  Int
+  bookedSeats Int       @default(0)
+  saleStarts  DateTime?
+  saleEnds    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  bookings Booking[]
+
+  @@index([eventId])
+}
+
+// Stores bookings made by attendees
+model Booking {
+  id            String        @id @default(cuid())
+  bookingNumber String        @unique
+  quantity      Int
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  status        BookingStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  attendeeId String
+  attendee   User   @relation(fields: [attendeeId], references: [id])
+
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id])
+
+  ticketTypeId String
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id])
+  tickets      Ticket[]
+  payment      Payment?
+
+  @@index([attendeeId])
+  @@index([eventId])
+  @@index([ticketTypeId])
+}
+
+// Individual tickets issued to attendees
+model Ticket {
+  id         String    @id @default(cuid())
+  ticketCode String    @unique
+  qrCodeUrl  String?
+  isUsed     Boolean   @default(false)
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+}
+
+// Payment information for bookings
+model Payment {
+  id                String   @id @default(cuid())
+  razorpayOrderId   String?  @unique
+  razorpayPaymentId String?  @unique
+  amount            Decimal  @db.Decimal(10, 2)
+  currency          String   @default("INR")
+  status            String   @default("PENDING")
+  paymentMethod     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+// Stores notifications for users
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
