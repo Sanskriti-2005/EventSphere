@@ -24,7 +24,7 @@ export default function SignInPage() {
             </p>
           </div>
 
-          <SignIn />
+          <SignIn forceRedirectUrl="/dashboard" />
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-500">

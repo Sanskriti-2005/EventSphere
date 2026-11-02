@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
+import { prisma } from "@/lib/prisma";
 
 const stats = [
   {
@@ -72,8 +73,34 @@ export default async function DashboardPage() {
 
   const user = await currentUser();
 
-  const firstName = user?.firstName || "there";
-  const userInitial = firstName.charAt(0).toUpperCase();
+    if (user?.primaryEmailAddress?.emailAddress) {
+    const email = user.primaryEmailAddress.emailAddress;
+
+    const name =
+        [user.firstName, user.lastName].filter(Boolean).join(" ") || null;
+
+    await prisma.user.upsert({
+        where: {
+        clerkId: user.id,
+        },
+
+        update: {
+        name: name,
+        email: email,
+        imageUrl: user.imageUrl,
+        },
+
+        create: {
+        clerkId: user.id,
+        name: name,
+        email: email,
+        imageUrl: user.imageUrl,
+        },
+    });
+    }
+
+    const firstName = user?.firstName || "there";
+    const userInitial = firstName.charAt(0).toUpperCase();
 
   return (
     <main className="min-h-screen bg-[#fffaf5]">
